@@ -14,11 +14,11 @@ def get_labels_and_image(camera_name, img_name):
     labels = open(os.path.join('dataset', 'CompleteAnnotations_2016-07-11', '{}.json'.format(camera_name)), 'r')
     # Parse json file
     labels = json.load(labels)
-    recs = []
+    images = []
     for i in labels["dots"]:
         if i["imName"] == img_name:
-            recs.append(i)
-    return recs
+            images.append(i)
+    return images
 
 # Create a function to save the labels
 def save_labels(squares, img_name, camera_name=None):
@@ -44,17 +44,25 @@ def save_labels(squares, img_name, camera_name=None):
         f.write('0 {} {} {} {}\n'.format(x, y, w, h))
 
 # Create a function to process the labels
-def process_labels(camera_name, img_name, alpha=120000, beta=0.1):
+def process_labels(camera_name, img_name):
     # Get the image and the labels
-    recs = get_labels_and_image(camera_name, img_name)
+    images = get_labels_and_image(camera_name, img_name)
     
-    if recs[0]["xy"] == [] or recs[0]["xy"] == None or recs[0]["xy"] == "_NaN_":
+    if images[0]["xy"] == [] or images[0]["xy"] == None or images[0]["xy"] == "_NaN_":
         return
+    import pickle
+    # Open pickle file
+    with open('camera_info.pkl', 'rb') as f:
+        camera_info = pickle.load(f)
+
+    height = camera_info[camera_name]["height"]
+    width = camera_info[camera_name]["width"]
+    alpha = camera_info[camera_name]["distortion"]
 
     # Squares
     squares = []
     visited = False
-    for i in recs[0]["xy"]:
+    for i in images[0]["xy"]:
         # If i is not a list, or enpty, skip it
         if type(i) != list or i == [] or i == None or i == "_NaN_" or i == [''] or i == '':
             continue
@@ -70,12 +78,10 @@ def process_labels(camera_name, img_name, alpha=120000, beta=0.1):
                 # The area of the square is proportional to the y value of the point
                 # To calculate the area of the square, we need to know the height of the image
                 # Get the height of the image
-                height = 1536
-                width = 2048
                 # Get the y value of the point
                 y = j[1]
                 # Calculate the area of the square
-                area = ((y/height) + beta) * alpha - beta * alpha
+                area = ((y/height) + 0.1) * alpha - 0.1 * alpha
                 
                 # Save the square
                 if area > 0:
