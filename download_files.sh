@@ -7,9 +7,9 @@ if [ ! -f $1 ]; then
     exit 1
 fi
 
-# Download the files
+# Download the files to dataset/images and unzip them
 while read line; do
-    wget $line
+    wget $line -P dataset/images && unzip dataset/images/*.zip -d dataset/images
 done < $1
 
 # End of script

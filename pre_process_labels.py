@@ -21,13 +21,20 @@ def get_labels_and_image(camera_name, img_name):
     return recs
 
 # Create a function to save the labels
-def save_labels(squares, camera_name, img_name):
+def save_labels(squares, img_name, camera_name=None):
     # Create a file
-    # Check if the directory exists if not, create it recursively
-    if not os.path.exists(os.path.join('dataset', 'labels', camera_name)):
-        os.makedirs(os.path.join('dataset', 'labels', camera_name))
-        
-    f = open(os.path.join('dataset', 'labels', camera_name, '{}.txt'.format(img_name)), 'w')
+    if camera_name != None:
+        # Check if the directory exists if not, create it recursively
+        if not os.path.exists(os.path.join('dataset', 'labels', camera_name)):
+            os.makedirs(os.path.join('dataset', 'labels', camera_name))
+            
+        f = open(os.path.join('dataset', 'labels', camera_name, '{}.txt'.format(img_name)), 'w')
+    else:
+        if not os.path.exists(os.path.join('dataset', 'labels')):
+            os.makedirs(os.path.join('dataset', 'labels'))
+            
+        f = open(os.path.join('dataset', 'labels', '{}.txt'.format(img_name)), 'w')
+
     # Write the labels
     for i in range(len(squares)):
         # Square center
@@ -37,10 +44,10 @@ def save_labels(squares, camera_name, img_name):
         f.write('0 {} {} {} {}\n'.format(x, y, w, h))
 
 # Create a function to process the labels
-def process_labels(camera_name, img_name):
+def process_labels(camera_name, img_name, alpha=120000, beta=0.1):
     # Get the image and the labels
     recs = get_labels_and_image(camera_name, img_name)
-
+    
     if recs[0]["xy"] == [] or recs[0]["xy"] == None or recs[0]["xy"] == "_NaN_":
         return
 
@@ -68,38 +75,50 @@ def process_labels(camera_name, img_name):
                 # Get the y value of the point
                 y = j[1]
                 # Calculate the area of the square
-                area = ((y/height) + 0.1) * 120000 - 12000
+                area = ((y/height) + beta) * alpha - beta * alpha
                 
                 # Save the square
                 if area > 0:
                     # Turn the area into a percentage of the image                    
-                    x = j[0] / width
-                    y = j[1] / height
-                    w = math.sqrt(area) / width
-                    h = math.sqrt(area) / height
+                    x = j[0] / width * 100
+                    y = j[1] / height * 100
+                    w = math.sqrt(area) / width * 100
+                    h = math.sqrt(area) / height * 100
                     squares.append((x, y, w, h))
                     visited = True
 
     # Save the labels
-    save_labels(squares, camera_name, img_name)
+    save_labels(squares, img_name)
     return squares
 
 def main():
     # Use Tqdm to show the progress
     from tqdm import tqdm
 
-    camera_name = 'BAILa'
-    # Get all the images
-    images = os.listdir("dataset/images/{}".format(camera_name))
-    print("Processing camera: {}".format(camera_name))
+    camera_name = {
+        "BAILa": 150000,
+        "DAMOa": 200000,
+        "GEORa": 250000,
+        "HALFb": 300000,
+        "MAIVb": 50000,
+        "MAIVc": 50000
+    }
 
-    # Process the labels for each image
-    for img in tqdm(images):
-        # If the image is not a .JPG file, skip it
-        if img[-3:] != 'JPG':
-            continue
-        # Process the labels
-        process_labels(camera_name, img[:-4])
+    for cam in camera_name:
+        print("Processing camera: {}".format(cam))
+        # Get all the images
+        images = os.listdir("dataset/images/{}".format(cam))
+
+        # Process the labels for each image
+        for img in tqdm(images):
+            # If the image is not a .JPG file, skip it
+            if img[-3:] != 'JPG':
+                continue
+            # Process the labels
+            # process_labels(cam, img[:-4], alpha=camera_name[cam])
+
+            # move image to new folder ../../images
+            os.rename(os.path.join("dataset", "images", cam, img), os.path.join("dataset", "images", img))
 
 if __name__ == '__main__':
     main()
