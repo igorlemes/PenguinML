@@ -19,11 +19,11 @@ def main():
         print("File list does not exist")
         sys.exit(1)
 
-    # Download the files to dataset/images and unzip them
+    # Download the files to dataset/images and un-tgz them
     with open(args.file) as file_list:
         for line in file_list:
             subprocess.run(["wget", line.strip(), "-P", "dataset/images"])
-            subprocess.run(["unzip", "-q", "dataset/images/*.zip", "-d", "dataset/images"])
+            subprocess.run(["tar", "-xzf", "dataset/images/{}".format(line.strip().split('/')[-1]), "-C", "dataset/images"])
 
     # End of script
 
