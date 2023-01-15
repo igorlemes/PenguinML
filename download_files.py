@@ -23,7 +23,10 @@ def main():
     with open(args.file) as file_list:
         for line in file_list:
             subprocess.run(["wget", line.strip(), "-P", "dataset/images"])
-            subprocess.run(["tar", "-xzf", "dataset/images/{}".format(line.strip().split('/')[-1]), "-C", "dataset/images"])
+            subprocess.run(["tar", "-xzf", "dataset/images/{}".format(line.strip().split('/')[-1]), "-C", "dataset/"])
+            subprocess.run(["rm", "dataset/images/{}".format(line.strip().split('/')[-1])])
+            # Move all images from dataset/images/line.strip().split('/')[-1] folders inside the dataset folder
+            subprocess.run(["mv", "dataset/images/{}*".format(line.strip().split('/')[-1][:-4]), "dataset/"])
 
     # End of script
 
