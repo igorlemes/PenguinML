@@ -26,7 +26,7 @@ def main():
             subprocess.run(["tar", "-xzf", "dataset/images/{}".format(line.strip().split('/')[-1]), "-C", "dataset/"])
             subprocess.run(["rm", "dataset/images/{}".format(line.strip().split('/')[-1])])
             # Move all images from dataset/images/line.strip().split('/')[-1] folders inside the dataset folder
-            subprocess.run(["mv", "dataset/images/{}*".format(line.strip().split('/')[-1][:-4]), "dataset/"])
+            subprocess.run(["mv", "dataset/{}/*.JPG".format(line.strip().split('/')[-1][:-4]), "dataset/"])
 
     # End of script
 
